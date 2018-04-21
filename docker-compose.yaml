@@ -1,0 +1,6 @@
+version: '3'
+services:
+  ld41:
+    build: .
+    image: ld41:latest
+    container_name: ld41
