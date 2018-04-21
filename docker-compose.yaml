@@ -4,3 +4,4 @@ services:
     build: .
     image: ld41:latest
     container_name: ld41
+    hostname: ld41
