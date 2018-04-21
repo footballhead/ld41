@@ -7,11 +7,12 @@ RUN mkdir -p stats \
 	&& echo 18 > stats/dexterity \
 	&& echo 18 > stats/magic \
 	&& echo 18 > stats/vitality
-RUN mkdir -p town \
-	&& echo "You find yourself in a small, peaceful town. The main streets are packed with smiling, happy people, just trying to make ends meet. The buildings are rustic yet charming. To the north you can see the city gates, the only way in and out of the recently walled-off space, and a meadow beyond." > town/description \
-	&& mkdir -p town/north \
-	&& echo "You're now in a quiet meadow, full of gently bright flowers saturated in sunlight. There is a town to the south." > town/north/description \
-	&& ln -s .. town/north/south
+RUN mkdir -p rooms/town \
+	&& echo "You find yourself in a small, peaceful town. The main streets are packed with smiling, happy people, just trying to make ends meet. The buildings are rustic yet charming. To the north you can see the city gates, the only way in and out of the recently walled-off space, and a meadow beyond." > rooms/town/description \
+	&& mkdir -p rooms/meadow \
+	&& echo "You're now in a quiet meadow, full of bright flowers saturated in the sunlight. There is a town to the south." > rooms/meadow/description \
+	&& ln -s ../meadow rooms/town/north \
+	&& ln -s ../town rooms/meadow/south
 
 # Disable default MOTD and legal message, then copy our own
 RUN chmod -x /etc/update-motd.d/00-header /etc/update-motd.d/10-help-text \
