@@ -14,6 +14,12 @@
 
 #define READ_SIZE 512
 
+
+//
+// TODO try poll http://cgi.di.uoa.gr/~ad/k22/named-pipes.pdf
+//
+
+
 static bool echo_input()
 {
 	int fd = -1;
@@ -33,7 +39,7 @@ static bool echo_input()
 
 	// Make sure it is a proper string (for now)
 	buf[READ_SIZE-1] = '\0';
-	printf("Client msg: %s", buf);
+	printf("Client msg: %s\n", buf);
 
 	close(fd);
 	return true;
