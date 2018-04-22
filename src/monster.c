@@ -14,14 +14,16 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
-#define WATCHED_FILE "test"
+#define WATCHED_FILE "skeleton"
 #define NUM_POLL_FDS 1
 #define POLL_BLOCK -1
 
 #define INOFITY_BUF_SIZE 4096
 #define BUF_SIZE 4096
 
-#define SAMPLE_FILE_CONTENTS "hello world\n"
+#define SAMPLE_FILE_CONTENTS "SKELETON\nJust a rackety pile of bones up to no good!\nHP: %d\n"
+
+static int s_hp = 10;
 
 enum operation {
 	OP_NONE,
@@ -30,13 +32,20 @@ enum operation {
 	OP_WRITE
 };
 
+static int generate_output(char* out, size_t out_size)
+{
+	return snprintf(out, out_size, SAMPLE_FILE_CONTENTS, s_hp);
+}
+
 static bool read_file_then_replace(char const* filename, char *outbuf,
-	size_t outbuf_size, char const* replace_contents, size_t replace_size)
+	size_t outbuf_size)
 {
 	int fd = -1;
 	int readlen = 0;
+	char replace_contents[BUF_SIZE] = {'\0'};
+	int replace_size = 0;
 
-	fd = open(filename, O_RDWR, S_IRUSR | S_IWUSR);
+	fd = open(filename, O_RDWR);
 	if (fd == -1) {
 		perror("open failed");
 		return false;
@@ -56,6 +65,8 @@ static bool read_file_then_replace(char const* filename, char *outbuf,
 		close(fd);
 		return false;
 	}
+
+	replace_size = generate_output(replace_contents, BUF_SIZE);
 
 	if (write(fd, replace_contents, replace_size) != replace_size) {
 		perror("write failed");
@@ -136,10 +147,9 @@ int main(int argc, char** argv)
 	struct pollfd pollfds[NUM_POLL_FDS];
 	char file_contents[BUF_SIZE] = {'\0'};
 
-	if (!read_file_then_replace(WATCHED_FILE, file_contents, BUF_SIZE,
-		SAMPLE_FILE_CONTENTS, strlen(SAMPLE_FILE_CONTENTS)))
+	if (!read_file_then_replace(WATCHED_FILE, file_contents, BUF_SIZE))
 	{
-		fprintf(stderr, "Couldn't open: test\n");
+		fprintf(stderr, "Couldn't open: " WATCHED_FILE "\n");
 		return EXIT_FAILURE;
 	}
 
@@ -198,10 +208,9 @@ int main(int argc, char** argv)
 				inotify_rm_watch(fd, wd);
 
 				if (!read_file_then_replace(WATCHED_FILE, file_contents,
-					BUF_SIZE, SAMPLE_FILE_CONTENTS,
-					strlen(SAMPLE_FILE_CONTENTS)))
+					BUF_SIZE))
 				{
-					fprintf(stderr, "Couldn't open: test\n");
+					fprintf(stderr, "Couldn't open: " WATCHED_FILE "\n");
 					return EXIT_FAILURE;
 				}
 
