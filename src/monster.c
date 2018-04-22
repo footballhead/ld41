@@ -73,6 +73,12 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 		return -1;
 	}
 
+	if (lseek(fd, 0, SEEK_SET) != 0) {
+		perror("lseeek failed");
+		close(fd);
+		return -1;	
+	}
+
 	replace_size = generate_output(replace_contents, BUF_SIZE);
 
 	if (write(fd, replace_contents, replace_size) != replace_size) {
@@ -80,6 +86,8 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 		close(fd);
 		return -1;
 	}
+
+	printf("DEBUG: First 5 characters: %d %d %d %d %d", replace_contents[0], replace_contents[1], replace_contents[2], replace_contents[3], replace_contents[4]);
 
 	close(fd);
 	return readlen;
