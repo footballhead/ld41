@@ -1,6 +1,6 @@
 # Custom Makefile
 
-CFLAGS=-Wall -g
+CFLAGS=-Wall -ggdb -Og
 
 .PHONY: all
 all: monster
