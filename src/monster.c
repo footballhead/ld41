@@ -19,7 +19,7 @@ static bool echo_input()
 	int fd = -1;
 	char buf[READ_SIZE] = {'\0'};
 	
-	fd = open(FIFO_NAME, O_RDONLY);
+	fd = open(FIFO_NAME, O_RDONLY | O_NONBLOCK);
 	if (fd == -1) {
 		perror("open failed");
 		return false;
@@ -54,23 +54,25 @@ int main(int argc, char** argv)
 	// stop reading, the pipe must be closed. Thus, this loop must be
 	// responsible for reopening the file.
 	while (true) {
+		// Try a non-blocking read.
 		if (!echo_input()) {
-			return EXIT_FAILURE;
+			// do nothing... oops
 		}
 
-		fd = open(FIFO_NAME, O_WRONLY);
-		if (fd == -1) {
-			perror("open failed");
-			return EXIT_FAILURE;
+		// Try a non-blocking write.
+		fd = open(FIFO_NAME, O_WRONLY | O_NONBLOCK);
+		if (fd != -1) {
+			if (write(fd, buf, buflen) < buflen) {
+				perror("write failed");
+				break;
+			}
+
+			close(fd);
+			fd = -1;
 		}
 
-		if (write(fd, buf, buflen) < buflen) {
-			perror("write failed");
-			break;
-		}
-
-		close(fd);
-		fd = -1;
+		// It should be possible for any combination of success/failure to
+		// happen for read/write attemps and have the loop keep going strong.
 
 		// I'm not sure if it's the nature of cat or the tight loop, but,
 		// without this sleep(), cat tends to print out the message multiple
@@ -81,6 +83,7 @@ int main(int argc, char** argv)
 
 	if (fd != -1) {
 		close(fd);
+		fd = -1;
 	}
 
 	return EXIT_SUCCESS;
