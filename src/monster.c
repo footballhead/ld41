@@ -17,23 +17,14 @@
 
 #define INOFITY_BUF_SIZE 4096
 
-static void interpret_inotify_event(const struct inotify_event* event, int wd)
-{
-	if (event->wd == wd) {
-		printf("DEBUG: name=%s\n", event->name);
-		if (event->mask & IN_CLOSE_WRITE) {
-			printf("IN_CLOSE_WRITE\n");
-		}
+enum operation {
+	OP_NONE,
+	OP_ERROR,
+	OP_READ,
+	OP_WRITE
+};
 
-		if (event->mask & IN_CLOSE_NOWRITE) {
-			printf("IN_CLOSE_NOWRITE\n");
-		}
-	} else {
-		printf("Watch descriptor doesn't match, ignoring!");
-	}
-}
-
-static bool handle_inotify_events(int fd, int wd)
+static int handle_inotify_events(int fd, int wd)
 {
 	// From http://man7.org/linux/man-pages/man7/inotify.7.html:
 
@@ -64,24 +55,33 @@ static bool handle_inotify_events(int fd, int wd)
 			myerrno = errno;
 
 			// We're non-blocking so this is expected
-			if (errno == EAGAIN) {
+			if (myerrno == EAGAIN) {
 				break;
 			}
 
 			perror("read failed");
-			return false;
+			return OP_ERROR;
 		}
 
 		// This loop interprets the read() values, one inotify_event at a time
 		while (iter < buf + readlen) {
 			event = (const struct inotify_event*)iter;
-			interpret_inotify_event(event, wd);
-
 			iter += sizeof(struct inotify_event) + event->len;
+
+			if (event->wd != wd) {
+				continue;
+			}
+
+			// Look at the first valid event and ignore the rest for now.
+			if (event->mask & IN_CLOSE_NOWRITE) {
+				return OP_READ;
+			} else if (event->mask & IN_CLOSE_WRITE) {
+				return OP_WRITE;
+			}
 		}
 	} while (readlen > 0);
 
-	return true;
+	return OP_NONE;
 }
 
 int main(int argc, char** argv)
@@ -89,6 +89,7 @@ int main(int argc, char** argv)
 	int fd = -1;
 	int wd = -1;
 	int pollnum = -1;
+	int oper = OP_NONE;
 	struct pollfd pollfds[NUM_POLL_FDS];
 
 	// Notice the use of inotify_init1. We need to provide IN_NONBLOCK so that
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
 	pollfds[0].fd = fd;
 	pollfds[0].events = POLLIN;
 
-	wd = inotify_add_watch(fd, WATCHED_FILE, INOTIFY_CLOSE);
+	wd = inotify_add_watch(fd, WATCHED_FILE, IN_CLOSE);
 	if (wd == -1) {
 		perror("inotify_add_watch failed");
 		close(fd);
@@ -129,10 +130,22 @@ int main(int argc, char** argv)
 		}
 
 		if (pollfds[0].revents & POLLIN) {
-			if (!handle_inotify_events(fd, wd)) {
+			oper = handle_inotify_events(fd, wd);
+
+			switch (oper) {
+			case OP_ERROR:
 				close(fd);
 				fd = -1;
 				return EXIT_FAILURE;
+			case OP_READ:
+				printf("file read from!\n");
+				break;
+			case OP_WRITE:
+				printf("file written to!\n");
+				break;
+			case OP_NONE:
+				// do nothing
+				break;
 			}
 		}
 	}
