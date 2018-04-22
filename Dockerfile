@@ -1,4 +1,25 @@
-FROM ubuntu:latest
+#
+# IMAGE: build
+# RESPONSIBILITY: Build all required source code
+#
+
+FROM ubuntu:latest as build
+
+RUN apt-get update \
+	&& apt-get install -y \
+		make \
+		gcc
+
+WORKDIR /build
+COPY src .
+RUN make
+
+#
+# IMAGE: setup
+# RESPONSIBILITY: Create the container that the player will run around in
+#
+
+FROM ubuntu:latest as setup
 
 #
 # AS ROOT
@@ -34,6 +55,8 @@ RUN mkdir -p rooms/town \
 	&& echo "You're now in a quiet meadow, full of bright flowers saturated in the sunlight. There is a town to the south." > rooms/meadow/description \
 	&& ln -s ../meadow rooms/town/north \
 	&& ln -s ../town rooms/meadow/south
+
+COPY --from=build /build/monster /world/monster
 
 #
 # AS ROOT
