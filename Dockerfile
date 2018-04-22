@@ -1,7 +1,28 @@
 FROM ubuntu:latest
 
-# Add stats files to skeleton directory
-WORKDIR /etc/skel
+#
+# AS ROOT
+#
+
+# Disable default MOTD and legal message, then copy our own
+RUN chmod -x /etc/update-motd.d/00-header /etc/update-motd.d/10-help-text \
+	&& mv /etc/legal /etc/legal_
+COPY motd /etc/motd
+
+# Game admin, owner of game files
+RUN useradd -r gaia -d /world -m
+
+# Add the new user. Password made with: openssl passwd -crypt ld41
+ARG LOGIN_USER=adventurer
+ARG LOGIN_PASS=c9tHOGXsa3ES.
+RUN useradd ${LOGIN_USER} -d /world -p ${LOGIN_PASS}
+
+#
+# AS GAIA
+#
+
+USER gaia
+WORKDIR /world
 RUN mkdir -p stats \
 	&& echo 18 > stats/strength \
 	&& echo 18 > stats/dexterity \
@@ -14,15 +35,10 @@ RUN mkdir -p rooms/town \
 	&& ln -s ../meadow rooms/town/north \
 	&& ln -s ../town rooms/meadow/south
 
-# Disable default MOTD and legal message, then copy our own
-RUN chmod -x /etc/update-motd.d/00-header /etc/update-motd.d/10-help-text \
-	&& mv /etc/legal /etc/legal_
-COPY motd /etc/motd
-
-# Add the new user. Password made with: openssl passwd -crypt ld41
-ARG LOGIN_USER=adventurer
-ARG LOGIN_PASS=c9tHOGXsa3ES.
-RUN useradd ${LOGIN_USER} -d /home/${LOGIN_USER} -m -p ${LOGIN_PASS}
+#
+# AS ROOT
+#
 
 # Workaround for pseudoterminals ioctl failing
+USER root
 ENTRYPOINT [ "/bin/sh", "-c", "login" ]
