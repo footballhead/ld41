@@ -1,1 +1,5 @@
 src/monster
+src/repeater
+src/skeleton
+src/*.o
+src/*.a
