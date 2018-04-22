@@ -11,13 +11,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+
 #define WATCHED_FILE "test"
 #define NUM_POLL_FDS 1
 #define POLL_BLOCK -1
 
 #define INOFITY_BUF_SIZE 4096
+#define BUF_SIZE 4096
 
-#define FILE_CONTENTS "hello world\n"
+#define SAMPLE_FILE_CONTENTS "hello world\n"
 
 enum operation {
 	OP_NONE,
@@ -26,17 +30,34 @@ enum operation {
 	OP_WRITE
 };
 
-static bool write_to_file(char const* filename, char const* contents, size_t n)
+static bool read_file_then_replace(char const* filename, char *outbuf,
+	size_t outbuf_size, char const* replace_contents, size_t replace_size)
 {
 	int fd = -1;
+	int readlen = 0;
 
-	fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
+	fd = open(filename, O_RDWR, S_IRUSR | S_IWUSR);
 	if (fd == -1) {
 		perror("open failed");
 		return false;
 	}
 
-	if (write(fd, contents, n) != n) {
+	readlen = read(fd, outbuf, outbuf_size);
+	if (readlen < 0) {
+		perror("read failed");
+		close(fd);
+		outbuf[0] = '\0';
+		return false;
+	}
+	outbuf[MIN(readlen, outbuf_size)] = '\0';
+
+	if (ftruncate(fd, 0) == -1) {
+		perror("ftruncate failed");
+		close(fd);
+		return false;
+	}
+
+	if (write(fd, replace_contents, replace_size) != replace_size) {
 		perror("write failed");
 		close(fd);
 		return false;
@@ -113,11 +134,16 @@ int main(int argc, char** argv)
 	int pollnum = -1;
 	int oper = OP_NONE;
 	struct pollfd pollfds[NUM_POLL_FDS];
+	char file_contents[BUF_SIZE] = {'\0'};
 
-	if (!write_to_file(WATCHED_FILE, FILE_CONTENTS, strlen(FILE_CONTENTS))) {
+	if (!read_file_then_replace(WATCHED_FILE, file_contents, BUF_SIZE,
+		SAMPLE_FILE_CONTENTS, strlen(SAMPLE_FILE_CONTENTS)))
+	{
 		fprintf(stderr, "Couldn't open: test\n");
 		return EXIT_FAILURE;
 	}
+
+	printf("DEBUG: Old contents:\n%s\n", file_contents);
 
 	// Notice the use of inotify_init1. We need to provide IN_NONBLOCK so that
 	// read()ing the inotify_events out of the watched descriptor doesn't block
@@ -171,13 +197,15 @@ int main(int argc, char** argv)
 				printf("file written to!\n");
 				inotify_rm_watch(fd, wd);
 
-				if (!write_to_file(WATCHED_FILE, FILE_CONTENTS,
-					strlen(FILE_CONTENTS)))
+				if (!read_file_then_replace(WATCHED_FILE, file_contents,
+					BUF_SIZE, SAMPLE_FILE_CONTENTS,
+					strlen(SAMPLE_FILE_CONTENTS)))
 				{
 					fprintf(stderr, "Couldn't open: test\n");
-					close(fd);
 					return EXIT_FAILURE;
 				}
+
+				printf("DEBUG: contents:\n%s\n", file_contents);
 
 				wd = inotify_add_watch(fd, WATCHED_FILE, IN_CLOSE);
 				if (wd == -1) {
