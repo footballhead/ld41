@@ -17,12 +17,34 @@
 
 #define INOFITY_BUF_SIZE 4096
 
+#define FILE_CONTENTS "hello world\n"
+
 enum operation {
 	OP_NONE,
 	OP_ERROR,
 	OP_READ,
 	OP_WRITE
 };
+
+static bool write_to_file(char const* filename, char const* contents, size_t n)
+{
+	int fd = -1;
+
+	fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
+	if (fd == -1) {
+		perror("open failed");
+		return false;
+	}
+
+	if (write(fd, contents, n) != n) {
+		perror("write failed");
+		close(fd);
+		return false;
+	}
+
+	close(fd);
+	return true;
+}
 
 static int handle_inotify_events(int fd, int wd)
 {
@@ -92,6 +114,11 @@ int main(int argc, char** argv)
 	int oper = OP_NONE;
 	struct pollfd pollfds[NUM_POLL_FDS];
 
+	if (!write_to_file(WATCHED_FILE, FILE_CONTENTS, strlen(FILE_CONTENTS))) {
+		fprintf(stderr, "Couldn't open: test\n");
+		return EXIT_FAILURE;
+	}
+
 	// Notice the use of inotify_init1. We need to provide IN_NONBLOCK so that
 	// read()ing the inotify_events out of the watched descriptor doesn't block
 	// and cause us to hang.
@@ -142,6 +169,22 @@ int main(int argc, char** argv)
 				break;
 			case OP_WRITE:
 				printf("file written to!\n");
+				inotify_rm_watch(fd, wd);
+
+				if (!write_to_file(WATCHED_FILE, FILE_CONTENTS,
+					strlen(FILE_CONTENTS)))
+				{
+					fprintf(stderr, "Couldn't open: test\n");
+					close(fd);
+					return EXIT_FAILURE;
+				}
+
+				wd = inotify_add_watch(fd, WATCHED_FILE, IN_CLOSE);
+				if (wd == -1) {
+					perror("inotify_add_watch failed");
+					close(fd);
+					return EXIT_FAILURE;	
+				}
 				break;
 			case OP_NONE:
 				// do nothing
