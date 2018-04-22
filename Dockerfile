@@ -58,6 +58,9 @@ RUN mkdir -p rooms/town \
 
 COPY --from=build /build/monster /world/monster
 
+# DEBUG DEBUG DEBUG DEBUG
+RUN chmod 777 /world
+
 #
 # AS ROOT
 #
