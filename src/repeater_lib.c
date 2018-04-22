@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define REPEATER_FILE "messages"
+#define REPEATER_FILE "/dev/pts/0"
 
 int print_message_to_player(const char* message)
 {

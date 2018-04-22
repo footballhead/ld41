@@ -48,7 +48,7 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 	char replace_contents[BUF_SIZE] = {'\0'};
 	int replace_size = 0;
 
-	fd = open(filename, O_RDWR);
+	fd = open(filename, O_RDWR | O_CREAT, 0666);
 	if (fd == -1) {
 		perror("open failed");
 		return -1;
@@ -62,7 +62,7 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 	}
 	outbuf[MIN(readlen, outbuf_size)] = '\0';
 
-	if (strncmp("attack", outbuf, MIN(6, readlen)) == 0) {
+	if (strncmp("attack", outbuf, 6) == 0) {
 		--s_hp;
 		print_message_to_player(SAMPLE_RESPONSE);
 	}
@@ -155,8 +155,8 @@ int main(int argc, char** argv)
 	char file_contents[BUF_SIZE] = {'\0'};
 	int readlen = -1;
 
-	if (!read_file_then_replace(WATCHED_FILE, file_contents, BUF_SIZE))
-	{
+	readlen = read_file_then_replace(WATCHED_FILE, file_contents, BUF_SIZE);
+	if (readlen == -1) {
 		fprintf(stderr, "Couldn't open: " WATCHED_FILE "\n");
 		return EXIT_FAILURE;
 	}
