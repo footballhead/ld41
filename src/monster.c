@@ -12,6 +12,33 @@
 
 #define MESSAGE_STRING "Hello world\n"
 
+#define READ_SIZE 512
+
+static bool echo_input()
+{
+	int fd = -1;
+	char buf[READ_SIZE] = {'\0'};
+	
+	fd = open(FIFO_NAME, O_RDONLY);
+	if (fd == -1) {
+		perror("open failed");
+		return false;
+	}
+
+	if (read(fd, buf, READ_SIZE) < 0) {
+		perror("read failed");
+		close(fd);
+		return false;
+	}
+
+	// Make sure it is a proper string (for now)
+	buf[READ_SIZE-1] = '\0';
+	printf("Client msg: %s", buf);
+
+	close(fd);
+	return true;
+}
+
 int main(int argc, char** argv)
 {
 	int fd = -1;
@@ -27,6 +54,10 @@ int main(int argc, char** argv)
 	// stop reading, the pipe must be closed. Thus, this loop must be
 	// responsible for reopening the file.
 	while (true) {
+		if (!echo_input()) {
+			return EXIT_FAILURE;
+		}
+
 		fd = open(FIFO_NAME, O_WRONLY);
 		if (fd == -1) {
 			perror("open failed");
