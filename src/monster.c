@@ -37,7 +37,7 @@ static int generate_output(char* out, size_t out_size)
 	return snprintf(out, out_size, SAMPLE_FILE_CONTENTS, s_hp);
 }
 
-static bool read_file_then_replace(char const* filename, char *outbuf,
+static int read_file_then_replace(char const* filename, char *outbuf,
 	size_t outbuf_size)
 {
 	int fd = -1;
@@ -48,22 +48,25 @@ static bool read_file_then_replace(char const* filename, char *outbuf,
 	fd = open(filename, O_RDWR);
 	if (fd == -1) {
 		perror("open failed");
-		return false;
+		return -1;
 	}
 
 	readlen = read(fd, outbuf, outbuf_size);
 	if (readlen < 0) {
 		perror("read failed");
 		close(fd);
-		outbuf[0] = '\0';
-		return false;
+		return -1;
 	}
 	outbuf[MIN(readlen, outbuf_size)] = '\0';
+
+	if (strncmp("attack", outbuf, MIN(6, readlen)) == 0) {
+		--s_hp;
+	}
 
 	if (ftruncate(fd, 0) == -1) {
 		perror("ftruncate failed");
 		close(fd);
-		return false;
+		return -1;
 	}
 
 	replace_size = generate_output(replace_contents, BUF_SIZE);
@@ -71,11 +74,11 @@ static bool read_file_then_replace(char const* filename, char *outbuf,
 	if (write(fd, replace_contents, replace_size) != replace_size) {
 		perror("write failed");
 		close(fd);
-		return false;
+		return -1;
 	}
 
 	close(fd);
-	return true;
+	return readlen;
 }
 
 static int handle_inotify_events(int fd, int wd)
@@ -146,6 +149,7 @@ int main(int argc, char** argv)
 	int oper = OP_NONE;
 	struct pollfd pollfds[NUM_POLL_FDS];
 	char file_contents[BUF_SIZE] = {'\0'};
+	int readlen = -1;
 
 	if (!read_file_then_replace(WATCHED_FILE, file_contents, BUF_SIZE))
 	{
@@ -207,9 +211,9 @@ int main(int argc, char** argv)
 				printf("file written to!\n");
 				inotify_rm_watch(fd, wd);
 
-				if (!read_file_then_replace(WATCHED_FILE, file_contents,
-					BUF_SIZE))
-				{
+				readlen = read_file_then_replace(WATCHED_FILE, file_contents,
+					BUF_SIZE);
+				if (readlen == -1) {
 					fprintf(stderr, "Couldn't open: " WATCHED_FILE "\n");
 					return EXIT_FAILURE;
 				}
