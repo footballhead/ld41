@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,17 +23,28 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	fd = open(FIFO_NAME, O_WRONLY);
-	if (fd == -1) {
-		perror("open failed");
-		return EXIT_FAILURE;
-	}
+	// Support repeatable client reads (cat). For client to receive EOF and
+	// stop reading, the pipe must be closed. Thus, this loop must be
+	// responsible for reopening the file.
+	while (true) {
+		fd = open(FIFO_NAME, O_WRONLY);
+		if (fd == -1) {
+			perror("open failed");
+			return EXIT_FAILURE;
+		}
 
-	if (write(fd, buf, buflen) < buflen) {
-		perror("write failed");
-	}
+		if (write(fd, buf, buflen) < buflen) {
+			perror("write failed");
+		}
 
-	close(fd);
+		close(fd);
+
+		// I'm not sure if it's the nature of cat or the tight loop, but,
+		// without this sleep(), cat tends to print out the message multiple
+		// times before stopping. Since we're operating on human time, this
+		// delay is probably acceptable.
+		sleep(1);
+	}
 
 	return EXIT_SUCCESS;
 }
