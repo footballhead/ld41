@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <poll.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -14,6 +15,8 @@
 
 #define READ_SIZE 512
 
+#define POLL_WAIT_MS 500
+
 
 //
 // TODO try poll http://cgi.di.uoa.gr/~ad/k22/named-pipes.pdf
@@ -23,11 +26,35 @@
 static bool echo_input()
 {
 	int fd = -1;
+	int rc = 0;
 	char buf[READ_SIZE] = {'\0'};
+	struct pollfd fdarray[1] = {0};
 	
 	fd = open(FIFO_NAME, O_RDONLY | O_NONBLOCK);
 	if (fd == -1) {
 		perror("open failed");
+		return false;
+	}
+
+	fdarray[0].fd = fd;
+	fdarray[0].events = POLLIN;
+
+	rc = poll(fdarray, sizeof(fdarray), POLL_WAIT_MS);
+	if (rc == 0) {
+		// Poll timeout
+		close(fd);
+		return false;
+	}
+
+	if (rc == -1) {
+		perror("poll failed");
+		close(fd);
+		return false;
+	}
+
+	if (fdarray[0].revents != POLLIN) {
+		// Not ready for reading
+		close(fd);
 		return false;
 	}
 
@@ -79,12 +106,6 @@ int main(int argc, char** argv)
 
 		// It should be possible for any combination of success/failure to
 		// happen for read/write attemps and have the loop keep going strong.
-
-		// I'm not sure if it's the nature of cat or the tight loop, but,
-		// without this sleep(), cat tends to print out the message multiple
-		// times before stopping. Since we're operating on human time, this
-		// delay is probably acceptable.
-		sleep(1);
 	}
 
 	if (fd != -1) {
