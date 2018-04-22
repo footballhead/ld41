@@ -35,15 +35,21 @@ int main(int argc, char** argv)
 
 		if (write(fd, buf, buflen) < buflen) {
 			perror("write failed");
+			break;
 		}
 
 		close(fd);
+		fd = -1;
 
 		// I'm not sure if it's the nature of cat or the tight loop, but,
 		// without this sleep(), cat tends to print out the message multiple
 		// times before stopping. Since we're operating on human time, this
 		// delay is probably acceptable.
 		sleep(1);
+	}
+
+	if (fd != -1) {
+		close(fd);
 	}
 
 	return EXIT_SUCCESS;
