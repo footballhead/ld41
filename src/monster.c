@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "repeater_lib.h"
+
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
@@ -22,6 +24,7 @@
 #define BUF_SIZE 4096
 
 #define SAMPLE_FILE_CONTENTS "SKELETON\nJust a rackety pile of bones up to no good!\nHP: %d\n"
+#define SAMPLE_RESPONSE "You hit for massive damage!\n"
 
 static int s_hp = 10;
 
@@ -61,6 +64,7 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 
 	if (strncmp("attack", outbuf, MIN(6, readlen)) == 0) {
 		--s_hp;
+		print_message_to_player(SAMPLE_RESPONSE);
 	}
 
 	if (ftruncate(fd, 0) == -1) {
