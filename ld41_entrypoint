@@ -1,0 +1,5 @@
+#!/bin/sh
+
+su gaia -c "cd /world/rooms/meadow && ../../monster &"
+
+exec login -f adventurer
