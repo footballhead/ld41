@@ -15,8 +15,6 @@
 #define NUM_POLL_FDS 1
 #define POLL_BLOCK -1
 
-#define INOTIFY_ALL_CLOSE IN_CLOSE_WRITE | IN_CLOSE_NOWRITE
-
 #define INOFITY_BUF_SIZE 4096
 
 static void interpret_inotify_event(const struct inotify_event* event, int wd)
@@ -105,7 +103,7 @@ int main(int argc, char** argv)
 	pollfds[0].fd = fd;
 	pollfds[0].events = POLLIN;
 
-	wd = inotify_add_watch(fd, WATCHED_FILE, INOTIFY_ALL_CLOSE);
+	wd = inotify_add_watch(fd, WATCHED_FILE, INOTIFY_CLOSE);
 	if (wd == -1) {
 		perror("inotify_add_watch failed");
 		close(fd);
