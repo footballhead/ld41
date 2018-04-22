@@ -10,6 +10,7 @@
 #include <string.h>
 
 #define FIFO_NAME "test"
+#define FIFO_PERMS_ALL_RW 0666
 
 #define MESSAGE_STRING "Hello world\n"
 
@@ -32,7 +33,7 @@ static bool echo_input()
 	
 	fd = open(FIFO_NAME, O_RDONLY | O_NONBLOCK);
 	if (fd == -1) {
-		perror("open failed");
+		perror("read-side open failed");
 		return false;
 	}
 
@@ -40,22 +41,24 @@ static bool echo_input()
 	fdarray[0].events = POLLIN;
 
 	rc = poll(fdarray, sizeof(fdarray), POLL_WAIT_MS);
-	if (rc == 0) {
-		// Poll timeout
-		close(fd);
-		return false;
-	}
 
+	// Poll error, fatal
 	if (rc == -1) {
 		perror("poll failed");
 		close(fd);
 		return false;
 	}
 
-	if (fdarray[0].revents != POLLIN) {
-		// Not ready for reading
+	// Poll timeout, non-fatal
+	if (rc == 0) {
 		close(fd);
-		return false;
+		return true;
+	}
+
+	// Poll was fine but not ready, non-fatal
+	if (fdarray[0].revents != POLLIN) {
+		close(fd);
+		return true;
 	}
 
 	if (read(fd, buf, READ_SIZE) < 0) {
@@ -72,12 +75,56 @@ static bool echo_input()
 	return true;
 }
 
-int main(int argc, char** argv)
+static bool print_test_message_to_readers()
 {
 	int fd = -1;
+	int rc = 0;
 	char* buf = MESSAGE_STRING;
 	size_t buflen = strlen(buf);
+	struct pollfd fdarray[1] = {0};
 
+	fd = open(FIFO_NAME, O_WRONLY | O_NONBLOCK);
+	if (fd == -1) {
+		perror("write-side open failed");
+		return false;
+	}
+
+	fdarray[0].fd = fd;
+	fdarray[0].events = POLLOUT;
+
+	rc = poll(fdarray, sizeof(fdarray), POLL_WAIT_MS);
+
+	// Poll error, fatal
+	if (rc == -1) {
+		perror("poll failed");
+		close(fd);
+		return false;
+	}
+
+	// Poll timeout, non-fatal
+	if (rc == 0) {
+		close(fd);
+		return true;
+	}
+
+	// Poll was fine but not ready, non-fatal
+	if (fdarray[0].revents != POLLOUT) {
+		close(fd);
+		return true;
+	}
+
+	if (write(fd, buf, buflen) < buflen) {
+		perror("write failed");
+		close(fd);
+		return false;
+	}
+
+	close(fd);
+	return true;
+}
+
+int main(int argc, char** argv)
+{
 	if (mkfifo(FIFO_NAME, 0666) == -1) {
 		perror("mkfifo failed");
 		return EXIT_FAILURE;
@@ -89,28 +136,16 @@ int main(int argc, char** argv)
 	while (true) {
 		// Try a non-blocking read.
 		if (!echo_input()) {
-			// do nothing... oops
+			return EXIT_FAILURE;
 		}
 
 		// Try a non-blocking write.
-		fd = open(FIFO_NAME, O_WRONLY | O_NONBLOCK);
-		if (fd != -1) {
-			if (write(fd, buf, buflen) < buflen) {
-				perror("write failed");
-				break;
-			}
-
-			close(fd);
-			fd = -1;
+		if (!print_test_message_to_readers()) {
+			return EXIT_FAILURE;
 		}
 
 		// It should be possible for any combination of success/failure to
 		// happen for read/write attemps and have the loop keep going strong.
-	}
-
-	if (fd != -1) {
-		close(fd);
-		fd = -1;
 	}
 
 	return EXIT_SUCCESS;
