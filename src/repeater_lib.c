@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
+// Piggy pack off of the pseudoterminal system to inject messages into the
+// player's window. Hopefully, this is the only terminal the player will ahve...
 #define REPEATER_FILE "/dev/pts/0"
 
 int print_message_to_player(const char* message)
