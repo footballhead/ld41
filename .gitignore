@@ -1,5 +1,4 @@
 src/monster
-src/repeater
-src/skeleton
+src/rpgstatsd
 src/*.o
 src/*.a

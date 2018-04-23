@@ -35,6 +35,11 @@ enum operation {
 	OP_WRITE
 };
 
+static void unlink_files(void)
+{
+	unlink(WATCHED_FILE);
+}
+
 static int generate_output(char* out, size_t out_size)
 {
 	return snprintf(out, out_size, SAMPLE_FILE_CONTENTS, s_hp);
@@ -158,6 +163,8 @@ int main(int argc, char** argv)
 	struct pollfd pollfds[NUM_POLL_FDS];
 	char file_contents[BUF_SIZE] = {'\0'};
 	int readlen = -1;
+
+	atexit(unlink_files);
 
 	readlen = read_file_then_replace(WATCHED_FILE, file_contents, BUF_SIZE);
 	if (readlen == -1) {

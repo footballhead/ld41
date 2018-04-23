@@ -3,9 +3,11 @@
 CFLAGS=-Wall -Og -g -ggdb
 
 .PHONY: all
-all: monster repeater librepeater.a
+all: monster librepeater.a rpgstatsd
 
 monster: monster.o librepeater.a
+
+rpgstatsd: rpgstatsd.o librepeater.a
 
 librepeater.a: repeater_lib.o
 	$(AR) $(ARFLAGS) $@ $^
