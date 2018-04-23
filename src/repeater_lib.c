@@ -17,19 +17,17 @@ int print_message_to_player(const char* message)
 
 	fd = open(REPEATER_FILE, O_RDWR);
 	if (fd == -1) {
-		perror("open failed");
+		perror("repater_lib: open failed");
 		return -1;
 	}
 
 	if (write(fd, message, len) != len) {
-		perror("write failed");
+		perror("repater_lib: write failed");
 		close(fd);
 		return -1;	
 	}
 
 	close(fd);
-
-	fprintf(stderr, "DEBUG: %s", message);
 
 	return 0;
 }

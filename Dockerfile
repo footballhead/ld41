@@ -29,10 +29,12 @@ FROM ubuntu:latest as setup
 RUN chmod -x /etc/update-motd.d/00-header /etc/update-motd.d/10-help-text \
 	&& mv /etc/legal /etc/legal_
 COPY motd /etc/motd
-COPY ld41_entrypoint /usr/local/bin
+
+# HACK: Allow other users to inject things into the player terminal
+RUN echo "chmod 666 /dev/pts/0" >> /etc/skel/.profile
 
 # Game admin, owner of game files
-RUN useradd -r gaia -d /world -m
+RUN useradd -r gaia -d /world -m -G tty
 
 # Add the new user. Password made with: openssl passwd -crypt ld41
 ARG LOGIN_USER=adventurer
@@ -67,4 +69,5 @@ COPY --from=build /build/monster /world/monster
 
 # Workaround for pseudoterminals ioctl failing
 USER root
+COPY ld41_entrypoint /usr/local/bin
 ENTRYPOINT [ "/bin/sh", "-c", "ld41_entrypoint" ]

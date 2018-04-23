@@ -74,7 +74,7 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 	}
 
 	if (lseek(fd, 0, SEEK_SET) != 0) {
-		perror("lseeek failed");
+		perror("lseek failed");
 		close(fd);
 		return -1;	
 	}
@@ -86,8 +86,6 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 		close(fd);
 		return -1;
 	}
-
-	printf("DEBUG: First 5 characters: %d %d %d %d %d", replace_contents[0], replace_contents[1], replace_contents[2], replace_contents[3], replace_contents[4]);
 
 	close(fd);
 	return readlen;
@@ -115,9 +113,7 @@ static int handle_inotify_events(int fd, int wd)
 	// fd is empty then we exit out so we can go back to poll()ing.
 	do {
 		// Read into a generic character buffer first.
-		printf("DEBUG: read\n");
 		readlen = read(fd, buf, INOFITY_BUF_SIZE);
-		printf("DEBUG: readlen=%zd\n", readlen);
 
 		// Disambiguate between fatal and non-fatal errors.
 		if (readlen < 0) {
@@ -169,8 +165,6 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	printf("DEBUG: Old contents:\n%s\n", file_contents);
-
 	// Notice the use of inotify_init1. We need to provide IN_NONBLOCK so that
 	// read()ing the inotify_events out of the watched descriptor doesn't block
 	// and cause us to hang.
@@ -193,7 +187,6 @@ int main(int argc, char** argv)
 	// The main loop: forever poll() then read() the inotify_events for the test
 	// file.
 	while (true) {
-		printf("DEBUG: poll\n");
 		pollnum = poll(pollfds, NUM_POLL_FDS, POLL_BLOCK);
 		if (pollnum == -1) {
 			perror("poll failed");
@@ -217,10 +210,9 @@ int main(int argc, char** argv)
 				fd = -1;
 				return EXIT_FAILURE;
 			case OP_READ:
-				printf("file read from!\n");
+				// do nothing
 				break;
 			case OP_WRITE:
-				printf("file written to!\n");
 				inotify_rm_watch(fd, wd);
 
 				readlen = read_file_then_replace(WATCHED_FILE, file_contents,
@@ -229,8 +221,6 @@ int main(int argc, char** argv)
 					fprintf(stderr, "Couldn't open: " WATCHED_FILE "\n");
 					return EXIT_FAILURE;
 				}
-
-				printf("DEBUG: contents:\n%s\n", file_contents);
 
 				wd = inotify_add_watch(fd, WATCHED_FILE, IN_CLOSE);
 				if (wd == -1) {
