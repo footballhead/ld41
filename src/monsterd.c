@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "playermsg.h"
+#include "rpgstats.h"
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -70,6 +71,7 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 	if (strncmp("attack", outbuf, 6) == 0) {
 		--s_hp;
 		print_message_to_player(SAMPLE_RESPONSE);
+		rpgstats_hurt_player(1);
 	}
 
 	if (ftruncate(fd, 0) == -1) {
