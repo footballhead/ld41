@@ -43,6 +43,7 @@ RUN useradd ${LOGIN_USER} -d /world -p ${LOGIN_PASS}
 
 COPY --from=build /build/monsterd /usr/local/bin/monsterd
 COPY --from=build /build/rpgstatsd /usr/local/bin/rpgstatsd
+COPY deathwatch /usr/local/bin/deathwatch
 
 #
 # AS GAIA

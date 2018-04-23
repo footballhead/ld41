@@ -6,7 +6,7 @@
 
 /**
  * \brief Decrease the player life total by an amount.
- * \param amount Value > 0 which will be taken away
+ * \param amount UNUSED Value > 0 which will be taken away
  * \returns 0 on success, -1 on failure
  */
 int rpgstats_hurt_player(int amount);

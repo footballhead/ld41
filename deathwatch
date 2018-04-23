@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Keep the user logged in while the process is running
+while pgrep rpgstatsd 1>/dev/null
+do
+    sleep 1
+done
+
+# Give the user some time to see the output
+sleep 1
+
+# Process is dead, tear down the system
+kill -9 1
