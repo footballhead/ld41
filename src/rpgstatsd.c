@@ -118,7 +118,8 @@ int main(int argc, char** argv)
 		}
 	}
 
-	printf("Exited inifite loop! Not supposed to happen!\n");
+	// We get here when the player health drops to 0. The shutdown of this
+	// process triggers root, via deathwatch, to terminate the container.
 
 	if (fd != -1) {
 		close(fd);
