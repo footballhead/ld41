@@ -3,15 +3,17 @@
 CFLAGS=-Wall -Og -g -ggdb
 
 .PHONY: all
-all: monster librepeater.a rpgstatsd
+all: monsterd libplayermsg.a rpgstatsd
 
-monster: monster.o librepeater.a
+monsterd: monsterd.o libplayermsg.a
 
-rpgstatsd: rpgstatsd.o librepeater.a
+rpgstatsd: rpgstatsd.o libplayermsg.a
 
-librepeater.a: repeater_lib.o
+libplayermsg.a: playermsg.o
 	$(AR) $(ARFLAGS) $@ $^
 
 .PHONY: clean
 clean:
-	rm -f monster repeater librepeater.a monster.o repeater_lib.o
+	rm -f monsterd monsterd.o \
+		rpgstatsd rpgstatsd.o \
+		libplayermsg.a playermsg.o

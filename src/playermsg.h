@@ -1,5 +1,5 @@
 /**
- * \file repeater_lib.h
+ * \file playermsg.h
  * \brief Helper functions for using the repeater service.
  */
 #pragma once

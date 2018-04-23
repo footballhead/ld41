@@ -1,5 +1,6 @@
 #!/bin/sh
 
-su gaia -c "cd /world/rooms/meadow && ../../monster &"
+su gaia -c "cd /world/rooms/meadow && monsterd &"
+su gaia -c "cd /world/stats && rpgstatsd &"
 
 exec login -f adventurer

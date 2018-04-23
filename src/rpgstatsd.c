@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "repeater_lib.h"
+#include "playermsg.h"
 
 #define PERM_ONLY_USER_RW 0600
 #define PERM_ALL_R_USER_W 0644

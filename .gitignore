@@ -1,4 +1,4 @@
-src/monster
+src/monsterd
 src/rpgstatsd
 src/*.o
 src/*.a

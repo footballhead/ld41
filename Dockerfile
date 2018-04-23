@@ -41,17 +41,16 @@ ARG LOGIN_USER=adventurer
 ARG LOGIN_PASS=c9tHOGXsa3ES.
 RUN useradd ${LOGIN_USER} -d /world -p ${LOGIN_PASS}
 
+COPY --from=build /build/monsterd /usr/local/bin/monsterd
+COPY --from=build /build/rpgstatsd /usr/local/bin/rpgstatsd
+
 #
 # AS GAIA
 #
 
 USER gaia
 WORKDIR /world
-RUN mkdir -p stats \
-	&& echo 18 > stats/strength \
-	&& echo 18 > stats/dexterity \
-	&& echo 18 > stats/magic \
-	&& echo 18 > stats/vitality
+RUN mkdir -p stats
 RUN mkdir -p rooms/town \
 	&& echo "You find yourself in a small, peaceful town. The main streets are packed with smiling, happy people, just trying to make ends meet. The buildings are rustic yet charming. To the north you can see the city gates, the only way in and out of the recently walled-off space, and a meadow beyond." > rooms/town/description \
 	&& mkdir -p rooms/meadow \
@@ -60,8 +59,6 @@ RUN mkdir -p rooms/town \
 	&& chmod 666 rooms/meadow/skeleton \
 	&& ln -s ../meadow rooms/town/north \
 	&& ln -s ../town rooms/meadow/south
-
-COPY --from=build /build/monster /world/monster
 
 #
 # AS ROOT
