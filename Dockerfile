@@ -43,10 +43,11 @@ RUN useradd ${LOGIN_USER} -d /world -p ${LOGIN_PASS}
 
 COPY --from=build /build/monsterd /usr/local/bin/monsterd
 COPY --from=build /build/rpgstatsd /usr/local/bin/rpgstatsd
+COPY --from=build /build/riddlerd /usr/local/bin/riddlerd
 COPY deathwatch /usr/local/bin/deathwatch
 
 COPY rooms /world
-RUN chown gaia:gaia /world/starter_town
+RUN chown -R gaia:gaia /world/starter_town
 
 #
 # AS GAIA

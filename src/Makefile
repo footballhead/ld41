@@ -3,11 +3,13 @@
 CFLAGS=-Wall -Og -g -ggdb
 
 .PHONY: all
-all: monsterd libplayermsg.a rpgstatsd librpgstats.a
+all: monsterd libplayermsg.a rpgstatsd librpgstats.a riddlerd
 
 monsterd: monsterd.o libplayermsg.a librpgstats.a
 
 rpgstatsd: rpgstatsd.o libplayermsg.a
+
+riddlerd: riddlerd.o libplayermsg.a
 
 libplayermsg.a: playermsg.o
 	$(AR) $(ARFLAGS) $@ $^

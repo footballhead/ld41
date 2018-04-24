@@ -1,7 +1,8 @@
 #!/bin/sh
 
-su gaia -c "cd /world/rooms/meadow && monsterd &"
+#su gaia -c "cd /world/rooms/meadow && monsterd &"
 su gaia -c "cd /world/stats && rpgstatsd &"
+su gaia -c "cd /world/starter_town/prayrie_plains && riddlerd &"
 
 deathwatch &
 
