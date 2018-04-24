@@ -10,3 +10,5 @@
  * \returns 0 on success, -1 on failure
  */
 int rpgstats_hurt_player(int amount);
+
+int rpgstats_give_bear(void);

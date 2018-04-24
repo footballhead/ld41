@@ -44,6 +44,7 @@ RUN useradd ${LOGIN_USER} -d /world -p ${LOGIN_PASS}
 COPY --from=build /build/skeletond /usr/local/bin/skeletond
 COPY --from=build /build/rpgstatsd /usr/local/bin/rpgstatsd
 COPY --from=build /build/riddlerd /usr/local/bin/riddlerd
+COPY --from=build /build/teddyd /usr/local/bin/teddyd
 COPY deathwatch /usr/local/bin/deathwatch
 
 COPY rooms /world

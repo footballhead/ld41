@@ -32,7 +32,7 @@
 
 #define SAMPLE_FILE_CONTENTS "SKELETON\nA minion of Nelly the Necromancer! Just a rackety pile of bones up to no good!\nHP: %d\n\n(HINT: to attack, write `attack` to this file!)\n"
 #define SAMPLE_RESPONSE "You hit for massive damage!\n"
-#define MSG_VISTORY "The skeleton crumbles before your might! Time to storm the castle!"
+#define MSG_VISTORY "The skeleton crumbles before your might! Time to storm the castle!\n"
 
 static int s_hp = 5;
 

@@ -27,10 +27,14 @@
 #define FILE_HP "hp"
 static int s_hp = 10;
 
+#define FILE_BEAR "teddy_bear"
+static bool s_has_bear = false;
+
 static void cleanup_files(void)
 {
 	unlink(FIFO_NAME);
 	unlink(FILE_HP);
+	unlink(FILE_BEAR);
 }
 
 static int file_write_stat(char const* filename, int stat)
@@ -61,6 +65,17 @@ static int change_hp(int amount)
 	s_hp = amount;
 	if (file_write_stat(FILE_HP, s_hp) == -1) {
 		fprintf(stderr, "Failed to update stat: " FILE_HP);
+		return -1;
+	}
+
+	return 0;
+}
+
+static int give_bear(void)
+{
+	s_has_bear = true;
+	if (file_write_stat(FILE_HP, s_has_bear) == -1) {
+		fprintf(stderr, "Failed to update stat: " FILE_BEAR);
 		return -1;
 	}
 
@@ -114,6 +129,12 @@ int main(int argc, char** argv)
 			if (s_hp <= 0) {
 				print_message_to_player("\n\nOh no! You have died!\n\n");
 				break;
+			}
+		} else if (strncmp("bear", buffer, 4) == 0) {
+			print_message_to_player("You got a teddy bear.\n");
+			if (give_bear() == -1) {
+				close(fd);
+				return EXIT_FAILURE;
 			}
 		}
 	}
