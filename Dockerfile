@@ -45,6 +45,9 @@ COPY --from=build /build/monsterd /usr/local/bin/monsterd
 COPY --from=build /build/rpgstatsd /usr/local/bin/rpgstatsd
 COPY deathwatch /usr/local/bin/deathwatch
 
+COPY rooms /world
+RUN chown gaia:gaia /world/starter_town
+
 #
 # AS GAIA
 #
@@ -53,7 +56,6 @@ USER gaia
 WORKDIR /world
 RUN mkdir -p stats
 
-COPY rooms /world
 
 
 #
