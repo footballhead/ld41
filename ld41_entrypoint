@@ -3,6 +3,7 @@
 #su gaia -c "cd /world/rooms/meadow && monsterd &"
 su gaia -c "cd /world/stats && rpgstatsd &"
 su gaia -c "cd /world/starter_town/prayrie_plains && riddlerd &"
+su gaia -c "cd /world/starter_town/prayrie_plains/maize_forest/enter/north/east/north/east/south/east/south/south/gross_swamp/ && skeletond &"
 
 deathwatch &
 

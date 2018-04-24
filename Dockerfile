@@ -41,7 +41,7 @@ ARG LOGIN_USER=adventurer
 ARG LOGIN_PASS=c9tHOGXsa3ES.
 RUN useradd ${LOGIN_USER} -d /world -p ${LOGIN_PASS}
 
-COPY --from=build /build/monsterd /usr/local/bin/monsterd
+COPY --from=build /build/skeletond /usr/local/bin/skeletond
 COPY --from=build /build/rpgstatsd /usr/local/bin/rpgstatsd
 COPY --from=build /build/riddlerd /usr/local/bin/riddlerd
 COPY deathwatch /usr/local/bin/deathwatch

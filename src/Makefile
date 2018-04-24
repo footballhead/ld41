@@ -3,9 +3,9 @@
 CFLAGS=-Wall -Og -g -ggdb
 
 .PHONY: all
-all: monsterd libplayermsg.a rpgstatsd librpgstats.a riddlerd
+all: skeletond libplayermsg.a rpgstatsd librpgstats.a riddlerd
 
-monsterd: monsterd.o libplayermsg.a librpgstats.a
+skeletond: skeletond.o libplayermsg.a librpgstats.a
 
 rpgstatsd: rpgstatsd.o libplayermsg.a
 
@@ -19,7 +19,7 @@ librpgstats.a: rpgstats.o
 
 .PHONY: clean
 clean:
-	rm -f monsterd monsterd.o \
+	rm -f skeletond skeletond.o \
 		rpgstatsd rpgstatsd.o \
 		libplayermsg.a playermsg.o \
 		librpgstats.a rpgstats.o

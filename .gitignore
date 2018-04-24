@@ -1,4 +1,5 @@
-src/monsterd
+src/skeletond
 src/rpgstatsd
+src/riddlerd
 src/*.o
 src/*.a

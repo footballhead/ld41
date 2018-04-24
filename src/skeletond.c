@@ -18,16 +18,23 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 #define WATCHED_FILE "skeleton"
+#define GUARD_DIR_NAME "castle_nelly"
+
+#define PERM_RW_RW_RW 0666
+#define PERM_RWX_RX_RX 0755
+#define PERM_RWX_0_0 0700
+
 #define NUM_POLL_FDS 1
 #define POLL_BLOCK -1
 
 #define INOFITY_BUF_SIZE 4096
 #define BUF_SIZE 4096
 
-#define SAMPLE_FILE_CONTENTS "SKELETON\nJust a rackety pile of bones up to no good!\nHP: %d\n"
+#define SAMPLE_FILE_CONTENTS "SKELETON\nA minion of Nelly the Necromancer! Just a rackety pile of bones up to no good!\nHP: %d\n\n(HINT: to attack, write `attack` to this file!)\n"
 #define SAMPLE_RESPONSE "You hit for massive damage!\n"
+#define MSG_VISTORY "The skeleton crumbles before your might! Time to storm the castle!"
 
-static int s_hp = 10;
+static int s_hp = 5;
 
 enum operation {
 	OP_NONE,
@@ -39,6 +46,7 @@ enum operation {
 static void unlink_files(void)
 {
 	unlink(WATCHED_FILE);
+	chmod(GUARD_DIR_NAME, PERM_RWX_RX_RX);
 }
 
 static int generate_output(char* out, size_t out_size)
@@ -71,7 +79,13 @@ static int read_file_then_replace(char const* filename, char *outbuf,
 	if (strncmp("attack", outbuf, 6) == 0) {
 		--s_hp;
 		print_message_to_player(SAMPLE_RESPONSE);
-		rpgstats_hurt_player(1);
+
+		if (s_hp <= 0) {
+			print_message_to_player(MSG_VISTORY);
+			return -1;
+		} else {
+			rpgstats_hurt_player(1);
+		}
 	}
 
 	if (ftruncate(fd, 0) == -1) {
@@ -174,6 +188,16 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
+	if (chmod(WATCHED_FILE, PERM_RW_RW_RW) == -1) {
+		perror("chmod " WATCHED_FILE " failed");
+		return EXIT_FAILURE;
+	}
+
+	if (chmod(GUARD_DIR_NAME, PERM_RWX_0_0) == -1) {
+		perror("chmod " GUARD_DIR_NAME " failed");
+		return EXIT_FAILURE;
+	}
+
 	// Notice the use of inotify_init1. We need to provide IN_NONBLOCK so that
 	// read()ing the inotify_events out of the watched descriptor doesn't block
 	// and cause us to hang.
@@ -227,7 +251,6 @@ int main(int argc, char** argv)
 				readlen = read_file_then_replace(WATCHED_FILE, file_contents,
 					BUF_SIZE);
 				if (readlen == -1) {
-					fprintf(stderr, "Couldn't open: " WATCHED_FILE "\n");
 					return EXIT_FAILURE;
 				}
 
@@ -243,10 +266,16 @@ int main(int argc, char** argv)
 				break;
 			}
 		}
+
+		if (s_hp <= 0) {
+			break;
+		}
 	}
 
-	// Theoretically shouldn't get here.
-	printf("Exited endless loop somehow!\n");
+	if (chmod(GUARD_DIR_NAME, PERM_RWX_RX_RX) == -1) {
+		perror("chmod " GUARD_DIR_NAME " failed");
+		return EXIT_FAILURE;
+	}
 
 	if (fd != -1) {
 		// Closing the inotify fd will release all watches
