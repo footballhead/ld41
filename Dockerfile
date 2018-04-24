@@ -52,14 +52,9 @@ COPY deathwatch /usr/local/bin/deathwatch
 USER gaia
 WORKDIR /world
 RUN mkdir -p stats
-RUN mkdir -p rooms/town \
-	&& echo "You find yourself in a small, peaceful town. The main streets are packed with smiling, happy people, just trying to make ends meet. The buildings are rustic yet charming. To the north you can see the city gates, the only way in and out of the recently walled-off space, and a meadow beyond." > rooms/town/description \
-	&& mkdir -p rooms/meadow \
-	&& echo "You're now in a quiet meadow, full of bright flowers saturated in the sunlight. There is a town to the south." > rooms/meadow/description \
-	&& touch rooms/meadow/skeleton \
-	&& chmod 666 rooms/meadow/skeleton \
-	&& ln -s ../meadow rooms/town/north \
-	&& ln -s ../town rooms/meadow/south
+
+COPY rooms /world
+
 
 #
 # AS ROOT

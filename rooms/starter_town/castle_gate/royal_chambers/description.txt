@@ -1,0 +1,7 @@
+You stand upon the red carpets of the throne_room.
+
+Never having been lucky enough to get in, you take a few moments to drink it all in: the long hall, decorated with pillars on either side of a long, red carpet, which terminates in the throne, whereupon the king of starter_town sits.
+
+The king seems bent out of shape, which is a refreshing change, I suppose. More mad than scared like the rest of the people you've encountered today. He seems ready to throw his crown across the room! Maybe that's why the guards stand several meters away on either side.
+
+Perhaps you should talk to the king, that's why you're here, is it not?

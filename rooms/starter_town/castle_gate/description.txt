@@ -1,0 +1,5 @@
+You are standing in front of the drawbridge of the main castle_gate.
+
+The guards stand at-the-ready but are visibly shaken, much like the townsfolk. You try to get more information from them, but they say nothing. They just look at you with quivering eyes.
+
+That ain't gonna stop you from seeing the king though, so, upon persuation, the guards lower the gate, revealing the way to the throne_room.

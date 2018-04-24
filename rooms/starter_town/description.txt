@@ -1,0 +1,5 @@
+You walk outside your dwelling and find yourself on the main streets of homely starter_town.
+
+Citizens go about their business in the markets with an unusual air of anxiety. You try to stop one of them but they mutter something about "Nelly" then scurry away. Curious.  What's this "Nelly" business?
+
+You decide that, if you want more information, you should probably visit the castle through the castle_gates. Once you've done that, since it's such a nice day, you think it might be nice to stroll through the meadow beyond the town. Looks like you're not getting much done today anyway.
